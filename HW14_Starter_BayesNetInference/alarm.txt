@@ -1,0 +1,32 @@
+5
+burglary t f
+burglary
+t 0.001
+f 0.999
+earthquake t f
+earthquake
+t 0.002
+f 0.998
+alarm t f
+alarm burglary earthquake
+t t t 0.95
+f t t 0.05
+t t f 0.94
+f t f 0.06
+t f t 0.29
+f f t 0.71
+t f f 0.001
+f f f 0.999
+johncalls t f
+johncalls alarm
+t t 0.9
+f t 0.1
+t f 0.05
+f f 0.95
+marycalls t f
+marycalls alarm
+t t 0.7
+f t 0.3
+t f 0.01
+f f 0.99
+
