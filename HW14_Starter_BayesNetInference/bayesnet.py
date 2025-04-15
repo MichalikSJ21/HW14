@@ -257,9 +257,6 @@ class BayesianNetwork:
                 evidence[next_var] = x
                 prob += (node.get_probability(x, self.get_parent_values(node.name, evidence)) * 
                          self.__cond_prob_topo_order(query, evidence, next_var_index+1))
-                # TODO: Add to prob the following value:
-                # P(next_var=x | parents' values) * P(later vars in topo order| next_var=x, earlier vars in topo order)
-                # Hint: Set the appropriate evidence, then use recursion to compute the second term in the product
             
             del evidence[next_var]
 
