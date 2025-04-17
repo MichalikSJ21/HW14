@@ -138,8 +138,8 @@ class BayesianNetwork:
 
         prob = 1.0 
         for val in self.topo_order:
-            ps = self.get_parent_values(val, rv_values)
-            evidence = {parent : rv_values[parent] for parent in ps}
+            parents = self.nodes[val].parents
+            evidence = {parent : rv_values[parent] for parent in parents}
             query = {val : rv_values[val]}
             prob *= self.get_conditional_prob(query, evidence)
 
@@ -186,7 +186,6 @@ class BayesianNetwork:
             Example: query = ['A', 'B'], and let "res" be the returned dictionary.
             Then res[ (t, 7) ] is P(A=t, B=7|evidence)
         """
-        # TODO: complete this function, following the steps below.
         # Do NOT use get_marginal_prob to directly compute the probability of evidence
         # (i.e., the denominator in the conditional probability definition formula).
         # Instead, compute the numerator for each part of the distribution
@@ -196,6 +195,7 @@ class BayesianNetwork:
         # Step 1: Build result so result[query_val_tuple] is the probability
         #   P(query_vars = query_val_tuple, evidence)
         result: dict[tuple[str, ...], float] = {}
+        normalizer = 0
 
         query_vals = self.enumerate_variables_tuples(query_vars)
         for query_val_tuple in query_vals:
@@ -204,11 +204,14 @@ class BayesianNetwork:
             # For example, if query_vars is ['A', 'B', 'C'],
             # then query_val_tuple could be (1, 4, 'shoe'), corresponding to
             # A=1, B=4, C=shoe
-            #
-            # TODO: complete this loop, using get_marginal_prob and NOT get_conditional_prob
-            # to set result[query_val_tuple] to be P(query_vars = query_val_tuple, evidence)
+            query : dict[str, str]= {**evidence} 
+            for i in range(len(query_vars)): 
+                query[query_vars[i]] = query_val_tuple[i]
 
-            pass
+            prob = self.get_marginal_prob(query)
+
+            normalizer += prob
+            result[query_val_tuple] = prob
 
 
         # Now the sum of all the values in result is P(evidence)
@@ -217,8 +220,9 @@ class BayesianNetwork:
         # Step 2: normalize the values in result (i.e., sum the values,
         #  then divide each value by the sum)
         
-        # TODO: normalize result so its values sum to 1.0
-        
+        # normalize result so its values sum to 1.0
+        for key, val in result.items():
+            result[key] = val/normalizer
 
 
         # return the final answer
