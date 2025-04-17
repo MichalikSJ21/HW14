@@ -133,9 +133,18 @@ class BayesianNetwork:
             For each variable x in the network, rv_values[x] should be a value in the domain of x.
             That is, all variables in the network should have a value specified in rv_values.
         """
+        if self.nodes.keys() != rv_values.keys():  return 0.0
+
+        prob = 1.0 
+        for val in self.topo_order:
+            ps = self.get_parent_values(val, rv_values)
+            evidence = {parent : rv_values[parent] for parent in ps}
+            query = {val : rv_values[val]}
+            prob *= self.get_conditional_prob(query, evidence)
+
                                           
         # TODO: implement this function
-        return 1.0
+        return prob
 
 
     def get_marginal_prob(self, rv_values: dict[str, str]) -> float:
@@ -159,6 +168,8 @@ class BayesianNetwork:
         intersection = {**query, **evidence}
         joint = self.get_marginal_prob(intersection)
         b = self.get_marginal_prob(evidence)
+
+        if b == 0:  return 0.0 
 
         return joint/b
     
