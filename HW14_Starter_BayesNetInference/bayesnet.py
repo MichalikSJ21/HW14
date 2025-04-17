@@ -387,11 +387,12 @@ class BayesianNetwork:
             raise ValueError(f"Invalid sampling method: {method}")
 
         
-        # TODO: normalize the sample_weight dictionary,
+        # normalize the sample_weight dictionary,
         # dividing each value by the sum of the original values,
         # so the new sample_weight values sum to 1.0
-       
-        
+        normalizer = sum([prob for prob in sample_weight.values()])         
+        for key in sample_weight.keys():
+            sample_weight[key] = sample_weight[key]/normalizer
 
 
         # Return the final result
