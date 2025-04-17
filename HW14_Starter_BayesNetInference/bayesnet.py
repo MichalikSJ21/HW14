@@ -133,6 +133,7 @@ class BayesianNetwork:
             For each variable x in the network, rv_values[x] should be a value in the domain of x.
             That is, all variables in the network should have a value specified in rv_values.
         """
+        # We need every variable to be set 
         if self.nodes.keys() != rv_values.keys():  return 0.0
 
         prob = 1.0 
@@ -142,8 +143,6 @@ class BayesianNetwork:
             query = {val : rv_values[val]}
             prob *= self.get_conditional_prob(query, evidence)
 
-                                          
-        # TODO: implement this function
         return prob
 
 
