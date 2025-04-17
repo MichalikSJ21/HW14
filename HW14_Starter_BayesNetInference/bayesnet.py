@@ -287,13 +287,27 @@ class BayesianNetwork:
         """
 
         # Build markov_blanket_vars to be the names of the variables in
-        # the Markov blanket of var_name: its parents, children, and childrens' parents.
+        # the Markov blanket of var_name: its PARENTS, children, and childrens' parents.
         # Note that a node could be a parent of both var_name and one of var_name's children,
         # but it should only be included once.
         markov_blanket_vars = self.nodes[var_name].parents.copy()
-    
-        # TODO: complete the function to compute and return the markov blanket variables' names
+        already_in = set()
+        nodes_added = []
 
+        for node in self.nodes.values():
+            if var_name in node.parents and node.name not in already_in:
+                # Add child 
+                markov_blanket_vars.append(node.name)
+                already_in.add(node.name)
+                nodes_added.append(node)
+        
+        for node in nodes_added:
+            # Add all of the nodes parents
+            for parent in node.parents:
+                if parent not in already_in and parent != var_name:
+                    markov_blanket_vars.append(parent)
+                    already_in.add(parent)
+        
 
         return markov_blanket_vars
 
