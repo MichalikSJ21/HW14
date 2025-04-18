@@ -381,11 +381,6 @@ class BayesianNetwork:
                 gibbs.update_sample(sample, non_evidence_vars)
                 query_of_sample = tuple([sample[rv] for rv in query_vars])
                 sample_weight[query_of_sample] += 1.0
-            # TODO: complete this block, using the GibbsSampler to
-            # generate num_samples samples.
-            # At the end of this block, sample_weight[v] should be
-            # the number of samples where the query variables had values v.
-            pass
 
         else:
             raise ValueError(f"Invalid sampling method: {method}")
@@ -413,11 +408,35 @@ class BayesianNetwork:
             sampling the evidence variables. The weight varies by sample according to the likelihood weighting algorithm.
         """
 
-        # TODO: complete this method according to the comment above
+        sample = {}
 
+        if not use_likelihood_weighting:
+            while True:
+                for var in self.topo_order:
+                    node = self.nodes[var]
+                    parents = tuple(node.parents)
+                    val = node.sample_value(parents)
 
-        return ({}, 1.0)
+                    if var in evidence and evidence[var] != val:
+                        break
+                    sample[var] = val
+                return sample, 1.0
 
+        if use_likelihood_weighting:
+            weight = 1.0
+            for var in self.topo_order:
+                if var in evidence:
+                    node = self.nodes[var]
+                    parents = tuple(node.parents)
+                    sample[var] = evidence[var]
+                    weight *= node.get_probability(evidence[var], parents)
+                else:
+                    node = self.nodes[var]
+                    parents = node.parents
+                    parent_values = tuple(sample[var] for var in parents)
+                    val = node.sample_value(parent_values)
+                    sample[var] = val
+            return sample, weight
 
 
 class GibbsSampler:
@@ -464,5 +483,8 @@ class GibbsSampler:
         # Get the probability distribution given the random variable and Blanket Values,
         # then determine whether to change the sample based upon the probability
         distribution = self.gibbs_tables[random_non_evidence_variable][markov_blanket_values]
-        print(distribution[markov_blanket_values])
+        random_value = random.random()
 
+        for key, value in distribution.items():
+            if value > random_value:
+                sample[random_non_evidence_variable] = key[0]
