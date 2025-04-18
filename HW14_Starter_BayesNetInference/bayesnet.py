@@ -468,7 +468,6 @@ class GibbsSampler:
             non_evidence_vars are all the variables in the network except the evidence variables
             (i.e., the variables that we sample, instead of clamping to certain values)
         """
-        # TODO: complete this function, implementing Gibbs sampling
         # Use self.gibbs_tables. Do NOT call any of the exact probability methods from the BayesianNetwork.
 
         # Randomly choose an element in the non_evidence_vars to sample
