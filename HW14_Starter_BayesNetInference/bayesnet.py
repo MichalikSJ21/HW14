@@ -25,10 +25,10 @@ class BayesianNode:
 
         if len(parent_values) != len(self.parents):
             raise ValueError("Number of parent values should match number of parents")
-        
+
         if node_value not in self.values:
             raise ValueError(f"Invalid value {node_value} for node {self.name}")
-        
+
         # Get the probability using the key
         try:
             prob = self.__cpt[parent_values][node_value]
@@ -36,9 +36,9 @@ class BayesianNode:
             print(f"Error with key {(parent_values)},{node_value} for node {self.name} with parents {self.parents}")
             print(f"valid keys are: {self.__cpt.keys()}")
             return 0.0
-        
+
         return prob
-    
+
 
     def sample_value(self, parent_values: tuple[str, ...]) -> str:
         """ Randomly generate a value for this node, given its parent values """
@@ -48,10 +48,10 @@ class BayesianNode:
         # The [0] is because choices returns a list of length 1
         return random.choices(list(distn.keys()), list(distn.values()))[0]
 
-    
+
     def __str__(self):
         return self.__repr__()
-    
+
     def __repr__(self):
         s = self.name + " in " + str(self.values) + "\n"
         s += "Parents: " + str(self.parents) + "\n"
@@ -73,24 +73,24 @@ class BayesianNetwork:
 
     def __str__(self):
         return self.__repr__()
-    
+
     def __repr__(self):
         s = ""
-        
+
         for v in self.topo_order:
             s += str(self.nodes[v])
             s += "\n\n"
-            
+
         return s
-    
+
     def enumerate_variables_tuples(self, rvs: list[str]) -> list[tuple[str, ...]]:
         """Returns a list of all possible tuples for the rvs variables
-        
+
         rvs is a list of variable names
 
-        Example: rvs = ['A', 'Rainy', 'X'], with 'A' in ['1', '2', '3'], 'Rainy' in ['t', 'f'], 
+        Example: rvs = ['A', 'Rainy', 'X'], with 'A' in ['1', '2', '3'], 'Rainy' in ['t', 'f'],
             and 'X' in ['5', '10']. This function will return
-            
+
             [('1', 't', '5'),
              ('1', 't', '10'),
              ('1', 'f', '5'),
@@ -108,18 +108,18 @@ class BayesianNetwork:
         head_vals = self.nodes[rvs[0]].values
         if len(rvs) == 1:
             return [(v,) for v in head_vals]
-        
+
         tail_vals = self.enumerate_variables_tuples(rvs[1:])
         return [(v, *recursive_vals) for v in head_vals for recursive_vals in tail_vals]
-    
+
 
     def get_parent_values(self, var_name: str, rv_values: dict[str,str]) -> tuple[str, ...]:
         """Extracts and returns the values of var_name's parents
-        
+
             rv_values is a mapping of variable name to value;
             it should include values for all the parents of var_name,
             but may include other variables' values as well
-             
+
             Raises KeyError if one of the parents of var_name is not in rv_values
         """
         return tuple([rv_values[p] for p in self.nodes[var_name].parents])
@@ -133,10 +133,10 @@ class BayesianNetwork:
             For each variable x in the network, rv_values[x] should be a value in the domain of x.
             That is, all variables in the network should have a value specified in rv_values.
         """
-        # We need every variable to be set 
+        # We need every variable to be set
         if self.nodes.keys() != rv_values.keys():  return 0.0
 
-        prob = 1.0 
+        prob = 1.0
         for val in self.topo_order:
             parents = self.nodes[val].parents
             evidence = {parent : rv_values[parent] for parent in parents}
@@ -157,10 +157,10 @@ class BayesianNetwork:
 
         return self.__cond_prob_topo_order(rv_values, {}, 0)
 
-                
+
     def get_conditional_prob(self, query: dict[str, str], evidence: dict[str, str]) -> float:
         """Get the probability of query given evidence
-        
+
             The (key, value) pairs in query are (r.v. name, value for r.v.),
             and similarly for evidence.
         """
@@ -168,21 +168,21 @@ class BayesianNetwork:
         joint = self.get_marginal_prob(intersection)
         b = self.get_marginal_prob(evidence)
 
-        if b == 0:  return 0.0 
+        if b == 0:  return 0.0
 
         return joint/b
-    
+
 
     def get_conditional_prob_distribution(self, query_vars: list[str], evidence: dict[str, str])\
           -> dict[tuple[str, ...], float]:
         """Get the probability distribution of query variables given evidence
-        
+
             query is a list of variable names
 
             The (key, value) pairs in evidence are (r.v. name, value for r.v.)
 
             Returns a distribution, a dictionary mapping tuple of query values to a probability.
-            
+
             Example: query = ['A', 'B'], and let "res" be the returned dictionary.
             Then res[ (t, 7) ] is P(A=t, B=7|evidence)
         """
@@ -204,8 +204,8 @@ class BayesianNetwork:
             # For example, if query_vars is ['A', 'B', 'C'],
             # then query_val_tuple could be (1, 4, 'shoe'), corresponding to
             # A=1, B=4, C=shoe
-            query : dict[str, str]= {**evidence} 
-            for i in range(len(query_vars)): 
+            query : dict[str, str]= {**evidence}
+            for i in range(len(query_vars)):
                 query[query_vars[i]] = query_val_tuple[i]
 
             prob = self.get_marginal_prob(query)
@@ -219,7 +219,7 @@ class BayesianNetwork:
 
         # Step 2: normalize the values in result (i.e., sum the values,
         #  then divide each value by the sum)
-        
+
         # normalize result so its values sum to 1.0
         for key, val in result.items():
             result[key] = val/normalizer
@@ -231,10 +231,10 @@ class BayesianNetwork:
 
     def __cond_prob_topo_order(self, query: dict[str, str], evidence: dict[str, str], next_var_index: int) -> float:
         """ Compute a conditional probability (satisfying a restricted form) using the chain rule
-         
+
             Let v be the variable topo_order[next_var_index].
             Every variable in the evidence must come before v in topo_order.
-        
+
             This function returns P(q' | e), where
               q' is the subset of query for variables at or after v in topo_order,
               and e is the evidence.
@@ -269,13 +269,13 @@ class BayesianNetwork:
 
             for x in node.values:
                 evidence[next_var] = x
-                prob += (node.get_probability(x, self.get_parent_values(node.name, evidence)) * 
+                prob += (node.get_probability(x, self.get_parent_values(node.name, evidence)) *
                          self.__cond_prob_topo_order(query, evidence, next_var_index+1))
-            
+
             del evidence[next_var]
 
         return prob
-    
+
 
 #####################   Exact inference is above
 #####################   Approximate inference is below
@@ -296,18 +296,18 @@ class BayesianNetwork:
 
         for node in self.nodes.values():
             if var_name in node.parents and node.name not in already_in:
-                # Add child 
+                # Add child
                 markov_blanket_vars.append(node.name)
                 already_in.add(node.name)
                 nodes_added.append(node)
-        
+
         for node in nodes_added:
             # Add all of the nodes parents
             for parent in node.parents:
                 if parent not in already_in and parent != var_name:
                     markov_blanket_vars.append(parent)
                     already_in.add(parent)
-        
+
 
         return markov_blanket_vars
 
@@ -319,14 +319,14 @@ class BayesianNetwork:
         """Approximate the probability distribution of query variables given evidence, using sampling
 
             method should be one of "rejection", "likelihood_weighting", or "gibbs"
-        
+
             query is a list of variable names
 
             The (key, value) pairs in evidence are (r.v. name, value for r.v.)
 
             Returns a distribution, a dictionary mapping each possible tuple of query values to a probability.
             The sum of the values will be 1.0.
-            
+
             Example: query_vars = ['A', 'B'], and let "res" be the returned dictionary.
             Then res[ (t, 7) ] is an estimate for P(A=t, B=7|evidence)
 
@@ -341,7 +341,7 @@ class BayesianNetwork:
         GIBBS_BURNIN = 100
 
         random.seed(rand_seed)
-        
+
         # To start, each possible query_val_tuple has weight 0.0.
         # As we generate samples that match, we add to that weight.
         sample_weight = {}
@@ -371,12 +371,16 @@ class BayesianNetwork:
 
             # The _ is because we don't need the weight returned by __gen_sample
             sample, _ = self.__gen_sample(evidence, True)
-            
+
             # Gibbs sampling needs to "burn in" by generating a few samples before we start counting
             non_evidence_vars = [x for x in self.topo_order if x not in evidence]
             for _ in range(GIBBS_BURNIN):
                 gibbs.update_sample(sample, non_evidence_vars)
 
+            for _ in range(num_samples):
+                gibbs.update_sample(sample, non_evidence_vars)
+                query_of_sample = tuple([sample[rv] for rv in query_vars])
+                sample_weight[query_of_sample] += 1.0
             # TODO: complete this block, using the GibbsSampler to
             # generate num_samples samples.
             # At the end of this block, sample_weight[v] should be
@@ -386,18 +390,18 @@ class BayesianNetwork:
         else:
             raise ValueError(f"Invalid sampling method: {method}")
 
-        
+
         # normalize the sample_weight dictionary,
         # dividing each value by the sum of the original values,
         # so the new sample_weight values sum to 1.0
-        normalizer = sum([prob for prob in sample_weight.values()])         
+        normalizer = sum([prob for prob in sample_weight.values()])
         for key in sample_weight.keys():
             sample_weight[key] = sample_weight[key]/normalizer
 
 
         # Return the final result
         return sample_weight
-    
+
 
     def __gen_sample(self, evidence: dict[str,str], use_likelihood_weighting=False) -> tuple[dict[str,str], float]:
         """Returns one sample (map from variable name to value) of all network variables and a weight for the sample.
@@ -408,12 +412,12 @@ class BayesianNetwork:
             If use_likelihood_weighting is true, use likelihood weighting to avoid
             sampling the evidence variables. The weight varies by sample according to the likelihood weighting algorithm.
         """
-        
+
         # TODO: complete this method according to the comment above
 
-       
+
         return ({}, 1.0)
-    
+
 
 
 class GibbsSampler:
@@ -433,7 +437,7 @@ class GibbsSampler:
             markov_blanket_vars = network.get_markov_blanket(v)
 
             markov_blanket_val_tuples = network.enumerate_variables_tuples(markov_blanket_vars)
-            
+
             for blanket_vals in markov_blanket_val_tuples:
                 evidence = {var_name: val for var_name, val in zip(markov_blanket_vars, blanket_vals)}
                 self.gibbs_tables[v][blanket_vals] = network.get_conditional_prob_distribution([v], evidence)
@@ -448,6 +452,17 @@ class GibbsSampler:
         # TODO: complete this function, implementing Gibbs sampling
         # Use self.gibbs_tables. Do NOT call any of the exact probability methods from the BayesianNetwork.
 
-        pass
+        # Randomly choose an element in the non_evidence_vars to sample
+        random_non_evidence_variable = random.choice(non_evidence_vars)
 
+        # Get the Markov Blanket Variables for the random variable
+        markov_blanket_vars = self.network.get_markov_blanket(random_non_evidence_variable)
+
+        # Fill in a tuple with the values for the markov values which are currently in the sample
+        markov_blanket_values = tuple(sample[var] for var in markov_blanket_vars)
+
+        # Get the probability distribution given the random variable and Blanket Values,
+        # then determine whether to change the sample based upon the probability
+        distribution = self.gibbs_tables[random_non_evidence_variable][markov_blanket_values]
+        print(distribution[markov_blanket_values])
 
