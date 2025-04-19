@@ -434,7 +434,7 @@ class BayesianNetwork:
                 else:
                     sample = {}
 
-        if use_likelihood_weighting:
+        elif use_likelihood_weighting:
             weight = 1.0
             for var in self.topo_order:
                 if var in evidence:
@@ -500,5 +500,5 @@ class GibbsSampler:
         cdf = 0
         for key, value in distribution.items():
             cdf = cdf + value
-            if cdf > random_value:
+            if cdf >= random_value:
                 sample[random_non_evidence_variable] = key[0]
