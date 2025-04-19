@@ -369,7 +369,6 @@ class BayesianNetwork:
                 query_of_sample = tuple([sample[rv] for rv in query_vars])
                 sample_weight[query_of_sample] += weight
 
-
         elif method == 'gibbs':
             assert(gibbs is not None)
 
@@ -498,6 +497,8 @@ class GibbsSampler:
         distribution = self.gibbs_tables[random_non_evidence_variable][markov_blanket_values]
         random_value = random.random()
 
+        cdf = 0
         for key, value in distribution.items():
-            if value > random_value:
+            cdf = cdf + value
+            if cdf > random_value:
                 sample[random_non_evidence_variable] = key[0]
