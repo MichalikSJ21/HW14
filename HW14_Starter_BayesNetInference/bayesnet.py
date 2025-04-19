@@ -368,7 +368,7 @@ class BayesianNetwork:
                 sample, weight = self.__gen_sample(evidence, True)
                 query_of_sample = tuple([sample[rv] for rv in query_vars])
                 sample_weight[query_of_sample] += weight
-            
+
 
         elif method == 'gibbs':
             assert(gibbs is not None)
@@ -419,7 +419,8 @@ class BayesianNetwork:
                 for var in self.topo_order:
                     node = self.nodes[var]
                     parents = tuple(node.parents)
-                    val = node.sample_value(parents)
+                    parent_values = tuple(sample[var] for var in parents)
+                    val = node.sample_value(parent_values)
 
                     if var in evidence and evidence[var] != val:
                         break
