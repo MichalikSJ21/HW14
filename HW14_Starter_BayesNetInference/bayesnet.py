@@ -441,8 +441,9 @@ class BayesianNetwork:
                 if var in evidence:
                     node = self.nodes[var]
                     parents = tuple(node.parents)
+                    parent_values = tuple(sample[var] for var in parents)
                     sample[var] = evidence[var]
-                    weight *= node.get_probability(evidence[var], parents)
+                    weight *= node.get_probability(evidence[var], parent_values)
                 else:
                     node = self.nodes[var]
                     parents = node.parents
