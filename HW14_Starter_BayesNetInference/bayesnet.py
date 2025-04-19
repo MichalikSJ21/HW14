@@ -1,3 +1,5 @@
+# Authors: Stevie Michalik & Andrew Foerst
+
 import pprint
 import random
 from typing import Optional
