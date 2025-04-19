@@ -415,17 +415,25 @@ class BayesianNetwork:
         sample = {}
 
         if not use_likelihood_weighting:
-            while True:
+            # Keep generating samples until we have one that does not disagree with the evidence
+            generated_sample = False
+            while not generated_sample:
                 for var in self.topo_order:
                     node = self.nodes[var]
                     parents = tuple(node.parents)
                     parent_values = tuple(sample[var] for var in parents)
                     val = node.sample_value(parent_values)
 
+                    # If the variable is evidence and disagrees with it, break
                     if var in evidence and evidence[var] != val:
                         break
                     sample[var] = val
-                return sample, 1.0
+
+                # Return the sample if we have a full sample. Otherwise, reset the sample and try again
+                if len(sample.keys()) == len(self.nodes):
+                    return sample, 1.0
+                else:
+                    sample = {}
 
         if use_likelihood_weighting:
             weight = 1.0
