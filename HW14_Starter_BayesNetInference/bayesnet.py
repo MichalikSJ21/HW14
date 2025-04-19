@@ -359,12 +359,16 @@ class BayesianNetwork:
                 sample_weight[query_of_sample] += 1.0
 
         elif method == 'likelihood_weighting':
-            # TODO: complete this block, using __gen_sample to
+            # Complete this block, using __gen_sample to
             # implement likelihood weighting, using num_samples samples.
             #
             # At the end of this block, sample_weight[v] should be
             # the total weight of the samples where the query variables had values v
-            pass
+            for _ in range(num_samples):
+                sample, weight = self.__gen_sample(evidence, True)
+                query_of_sample = tuple([sample[rv] for rv in query_vars])
+                sample_weight[query_of_sample] += weight
+            
 
         elif method == 'gibbs':
             assert(gibbs is not None)
