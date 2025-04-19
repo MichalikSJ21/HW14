@@ -502,3 +502,4 @@ class GibbsSampler:
             cdf = cdf + value
             if cdf >= random_value:
                 sample[random_non_evidence_variable] = key[0]
+                break
